@@ -1,18 +1,15 @@
 import React, { useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
 import styles from '../pages.module.css';
 
 import { logout } from '../../components/services/auth/actions';
 
-Logout.propTypes = {
-  title: PropTypes.string.isRequired,
-}
-
-export function Logout ({title}) {
-  const dispatch = useDispatch();
+export function Logout ({ title }: { title: string }): React.JSX.Element {
+  const dispatch= useDispatch();
 
   useEffect(() => {
+    // TODO remove ts-ignore
+    // @ts-ignore
     dispatch(logout());
     // eslint-disable-next-line
   }, [])

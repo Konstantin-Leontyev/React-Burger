@@ -1,44 +1,42 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, {ChangeEvent, FormEvent, useState} from 'react';
+import { NavLink } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import styles from './profile.module.css';
 
 import { Button, EmailInput, Input, PasswordInput } from '@ya.praktikum/react-developer-burger-ui-components';
+import { TUserData, TUserUpdateData } from "../../components/utils/types";
 import { getUser } from '../../components/services/auth/reducers';
 import { updateUserProfile } from '../../components/services/auth/actions';
 import { useForm } from '../../components/utils/useForm';
 
-export function Profile() {
+export function Profile(): React.JSX.Element {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  // TODO type useSelector
   const user = useSelector(getUser);
   const [isChanged, setIsChanged] = useState(false);
-  const { formData, handleOnChange } = useForm({ name: user?.name ?? "", email: user?.email ?? "" });
+  const { formData, handleOnChange } = useForm<TUserUpdateData>({} as TUserUpdateData);
 
-  function handleOnReset(event) {
+  function handleOnReset(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
 
-    formData.name = user?.name ?? "";
-    formData.email = user?.email ?? "";
-    formData.password = ""
+    // TODO use prevent data
+    formData.name = "";
+    formData.email = "";
+    formData.password = "";
     setIsChanged(false);
   }
 
-  function handleOnFormChange(event) {
+  function handleOnFormChange(event: ChangeEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setIsChanged(true);
   }
 
-  function handleOnSubmit(event) {
+  function handleOnSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-
+    // TODO remove ts-ignore
+    // @ts-ignore
     dispatch(updateUserProfile(formData));
-  }
-
-  const handleOnLogoutClick = (event) => {
-    event.preventDefault();
-    navigate('/logout');
   }
 
   const active = `${styles.active} text text_type_main-medium`
@@ -78,15 +76,15 @@ export function Profile() {
           onChange={handleOnChange}
           placeholder="Имя"
           type="text"
-          value={formData.name}
+          value={formData.name ?? ''}
         />
         <EmailInput
           extraClass="mt-6"
-          icon="EditIcon"
+          isIcon={true}
           name="email"
           onChange={handleOnChange}
           placeholder="Логин"
-          value={formData.email}
+          value={formData.email ?? ''}
         />
         <PasswordInput
           extraClass="mt-6"

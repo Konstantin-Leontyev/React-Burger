@@ -1,18 +1,21 @@
-import React from 'react';
+import React, {FormEvent} from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import styles from '../pages.module.css';
 
 import { Button, EmailInput, Input, PasswordInput } from '@ya.praktikum/react-developer-burger-ui-components';
+import { TUserRegisterData } from "../../components/utils/types";
 import { register } from '../../components/services/auth/actions';
 import { useForm } from '../../components/utils/useForm';
 
-export function Register() {
+export function Register(): React.JSX.Element {
   const dispatch = useDispatch();
-  const { formData, handleOnChange } = useForm({});
+  const { formData, handleOnChange } = useForm<TUserRegisterData>({} as TUserRegisterData);
 
-  const handleOnSubmit = (event) => {
+  function handleOnSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
+    // TODO remove ts-ignore
+    // @ts-ignore
     dispatch(register(formData));
   }
 

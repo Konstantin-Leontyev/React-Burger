@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './total-price.module.css';
@@ -8,21 +7,22 @@ import {
   Button,
   CurrencyIcon,
 } from '@ya.praktikum/react-developer-burger-ui-components';
+import { TIngredient } from "../../../utils/types";
 import { getOrderDetails } from '../../../services/burger-constructor/actions';
 import { getUser } from '../../../services/auth/reducers';
-import { ingredientPropTypes } from '../../../utils/constants';
 
-TotalPrice.propTypes = {
-  bun: ingredientPropTypes.isRequired,
-  ingredients: PropTypes.arrayOf(ingredientPropTypes).isRequired,
+type TTotalPriceProps = {
+  bun: TIngredient,
+  ingredients: TIngredient[]
 };
 
-export function TotalPrice({ bun, ingredients }) {
+export function TotalPrice({ bun, ingredients }: TTotalPriceProps): React.JSX.Element {
   const dispatch = useDispatch();
   const location = useLocation();
   const user = useSelector(getUser);
   const navigate = useNavigate();
-  const [burger, setBurger] = useState([]);
+
+  const [burger, setBurger] = useState<TIngredient[]>([]);
 
   useEffect(() => {
     setBurger([
@@ -46,7 +46,8 @@ export function TotalPrice({ bun, ingredients }) {
     if (!user) {
       return navigate('/login', { state: { from: location }});
     }
-
+    // TODO delete ts-ignore
+    // @ts-ignore
     dispatch(getOrderDetails(idList));
     // eslint-disable-next-line
   }, [burger])

@@ -1,13 +1,22 @@
 import PropTypes from 'prop-types';
+import React from "react";
 
 import {
   BurgerIcon,
   ListIcon,
   ProfileIcon,
 } from '@ya.praktikum/react-developer-burger-ui-components';
+import { TIconProps } from "@ya.praktikum/react-developer-burger-ui-components/dist/ui/icons/utils";
 
+export type THeaderItem = {
+  title: string;
+  name: string;
+  route: string;
+  type: string;
+  Icon: ({type}: TIconProps) => React.JSX.Element
+};
 
-export const headerItemsInitialState = [
+export const headerItemsInitialState: THeaderItem[] = [
   {
     title: 'Конструктор',
     name: 'BurgerIcon',
@@ -31,7 +40,7 @@ export const headerItemsInitialState = [
   },
 ];
 
-export const baseUrl = 'https://norma.nomoreparties.space/api/';
+export const baseUrl: string = 'https://norma.nomoreparties.space/api/';
 
 
 export const ingredientPropTypes = PropTypes.shape({

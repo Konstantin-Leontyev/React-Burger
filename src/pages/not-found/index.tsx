@@ -1,12 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styles from '../pages.module.css';
 
-NotFound.propTypes = {
-  title: PropTypes.string.isRequired,
-}
-
-export function NotFound({title}) {
+export function NotFound({ title }: { title: string } ) {
 
   return <span className={`${styles.container} text text_type_main-large`}>{title}</span>
 }

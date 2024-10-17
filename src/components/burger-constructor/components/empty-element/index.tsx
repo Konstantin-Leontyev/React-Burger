@@ -1,16 +1,15 @@
 import React from 'react';
-import PropTypes from "prop-types";
 import styles from './empty-element.module.css'
 
-import { ingredientPropTypes } from '../../../utils/constants';
+import { TIngredient } from "../../../utils/types";
 
-EmptyElement.propTypes = {
-  type: PropTypes.string.isRequired,
-  item: ingredientPropTypes,
-  isOver: PropTypes.bool,
+type TEmptyElementProps = {
+  type: string;
+  item: TIngredient,
+  isOver: boolean,
 };
 
-export function EmptyElement({ type, item, isOver }) {
+export function EmptyElement({ type, item, isOver }: TEmptyElementProps): React.JSX.Element {
   const mainType = type === 'main';
 
   const text = mainType

@@ -1,23 +1,30 @@
 import React, { useCallback, useRef } from 'react';
-import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
 import { useDrag, useDrop } from 'react-dnd';
-import styles from './filled-element.module.css'
+import styles from './filled-element.module.css';
 
 import { ConstructorElement, DragIcon } from '@ya.praktikum/react-developer-burger-ui-components';
+import { TIngredient } from "../../../utils/types";
 import { deleteCurrentBurgerIngredient, moveIngredients} from '../../../services/burger-constructor/reducers';
-import { ingredientPropTypes } from '../../../utils/constants';
 import { resetIngredientCount } from '../../../services/burger-ingredients/reducers';
 
-FilledElement.propTypes = {
-  type: PropTypes.string,
-  index: PropTypes.number,
-  ingredient: ingredientPropTypes.isRequired,
+type TFilledElementProps = {
+  type?: "top" | "bottom";
+  index?: number;
+  // TODO replace
+  ingredient: TIngredient & { key: string };
 };
 
-export function FilledElement({ ingredient, index, type}) {
+type TDragObject = {
+  key: string;
+  index: number | undefined;
+};
+
+type TDragCollectedProps = { isDragging: boolean };
+
+export function FilledElement({ ingredient, index, type}: TFilledElementProps): React.JSX.Element {
   const dispatch = useDispatch();
-  const ref = useRef();
+  const ref = useRef<HTMLDivElement>(null);
 
   const { price, name, image, key } = ingredient;
 
@@ -38,10 +45,10 @@ export function FilledElement({ ingredient, index, type}) {
     // eslint-disable-next-line
   }, [ingredient]);
 
-  const [{ isDragging }, dragRef] = useDrag({
+  const [{ isDragging }, dragRef] = useDrag<TDragObject, unknown, TDragCollectedProps>({
     type: 'card',
     item: () => {
-      return {key, index};
+      return { key, index };
     },
     collect: monitor => ({
       isDragging: monitor.isDragging(),
@@ -50,7 +57,7 @@ export function FilledElement({ ingredient, index, type}) {
 
   const opacity = isDragging ? 0 : 1;
 
-  const [, dropRef] = useDrop({
+  const [, dropRef] = useDrop<TDragObject, unknown, unknown>({
     accept: 'card',
     hover: (item, monitor) => {
       if (!ref.current) {
@@ -64,12 +71,15 @@ export function FilledElement({ ingredient, index, type}) {
       const hoverBoundingRect = ref.current?.getBoundingClientRect();
       const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
       const clientOffset = monitor.getClientOffset();
-      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return;
-      }
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return;
+      if (dragIndex && hoverIndex && clientOffset) {
+        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+        if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+          return;
+        }
+        if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+          return;
+        }
       }
 
       dispatch(moveIngredients({dragIndex, hoverIndex}));

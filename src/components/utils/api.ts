@@ -1,4 +1,10 @@
 import { baseUrl } from './constants';
+import {
+  TIngredient, TIngredientsResponse, TLogoutResponse, TPasswordResetResponse,
+  TRefreshedData, TPasswordResetData, TUserUpdateData, TUserDataResponse,
+  TUserRegisterData, TUserRegisterResponse, TLoginData, TLoginResponse,
+  TPasswordConfirmationResponse, TIngredientID, TOrderDetails, TPasswordConformationData,
+} from "./types";
 
 let defaultOptions = {
   method: 'POST',
@@ -10,7 +16,7 @@ let defaultOptions = {
 /**
  * Check response status.
  */
-function checkResponse(response) {
+function checkResponse<T>(response: Response): Promise<T> {
   if (response.ok) {
     return response.json();
   }
@@ -21,30 +27,30 @@ function checkResponse(response) {
 /**
  * Send request and check response status.
  */
-function request(endpoint, options) {
+function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   return fetch(baseUrl.concat(endpoint), options)
-    .then(checkResponse);
+    .then(checkResponse<T>);
 }
 
-/**
- * Set JWT tokens to local storage.
- */
-function tokenUpload(responseData) {
-  if (!responseData.success) {
-    return Promise.reject(`Ошибка ${responseData.status} - ${responseData.details}`);
-  }
-
-  localStorage.setItem('accessToken', responseData.accessToken);
-  localStorage.setItem('refreshToken', responseData.refreshToken);
-  return Promise.resolve(responseData);
-}
+// /**
+//  * Set JWT tokens to local storage.
+//  */
+// function tokenUpload(responseData: TRefreshedData): Promise<TRefreshedData> {
+//   if (!responseData.success) {
+//     return Promise.reject(responseData);
+//   }
+//
+//   localStorage.setItem('accessToken', responseData.accessToken);
+//   localStorage.setItem('refreshToken', responseData.refreshToken);
+//   return Promise.resolve(responseData);
+// }
 
 /**
  * Send JWT tokens refresh request and set them to local storage.
  * @example
  * // request body
  * {
- *   "token": "значение refreshToken"
+ *   "token": "refreshToken value"
  * }
  * @example
  * // response
@@ -56,14 +62,20 @@ function tokenUpload(responseData) {
  * @permission Auth only.
  * @returns {Object} Refresh request status and new JWT tokens.
  */
-function refreshToken() {
+function refreshToken(): Promise<TRefreshedData> {
   const options = {
     ...defaultOptions,
     body: JSON.stringify({token: localStorage.getItem('refreshToken')})
   };
-  return request('auth/token', options)
+  return request<TRefreshedData>('auth/token', options)
     .then((refreshedData) => {
-        return tokenUpload(refreshedData);
+      if (!refreshedData.success) {
+        return Promise.reject(refreshedData);
+      }
+
+      localStorage.setItem('accessToken', refreshedData.accessToken);
+      localStorage.setItem('refreshToken', refreshedData.refreshToken);
+      return refreshedData
     });
 }
 
@@ -72,14 +84,16 @@ function refreshToken() {
  * If accessToken is expired automatically sent refresh token request,
  * and then repeat base request.
  */
-async function requestWithRefresh(endpoint, options) {
+async function requestWithRefresh<T>(endpoint: string, options: RequestInit): Promise<T> {
   try {
-    return await request(endpoint, options);
+    return await request<T>(endpoint, options);
   } catch(error) {
-    if (error.message === 'jwt expired') {
+    if ((error as { message: string }).message === 'jwt expired') {
       const refreshData = await refreshToken();
-      options.headers.authorization = refreshData.accessToken;
-      return request(endpoint, options);
+      if (options.headers) {
+        (options.headers as { [key: string]: string | null }).authorization = refreshData.accessToken;
+      }
+      return request<T>(endpoint, options);
     } else {
       throw error;
     }
@@ -113,8 +127,8 @@ async function requestWithRefresh(endpoint, options) {
  * @permission Allow any.
  * @returns {Object} Ingredient request status and ingredients object list.
  */
-export function getIngredients() {
-  return request('ingredients')
+export function getIngredients(): Promise<TIngredient[]> {
+  return request<TIngredientsResponse>('ingredients')
     .then((jsonResponse) => {
       return jsonResponse.data;
     });
@@ -143,16 +157,21 @@ export function getIngredients() {
  * @permission Allow any.
  * @returns {Object} register request status, JWT tokens and user object.
  */
-export function registerUser(formData) {
-  console.log(formData)
+export function registerUser(formData: TUserRegisterData): Promise<TUserRegisterResponse> {
   const options = {
     ...defaultOptions,
     body: JSON.stringify(formData),
   };
 
-  return request('auth/register', options)
+  return request<TUserRegisterResponse>('auth/register', options)
     .then((response) => {
-      return tokenUpload(response);
+      if (!response.success) {
+        return Promise.reject(response);
+      }
+
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
+      return response
     });
 }
 
@@ -178,15 +197,21 @@ export function registerUser(formData) {
  * @permission Allow any.
  * @returns {Object} login request status, JWT tokens and user object.
  */
-export function loginUser(formData) {
+export function loginUser(formData: TLoginData): Promise<TLoginResponse> {
   const options = {
     ...defaultOptions,
     body: JSON.stringify(formData),
   };
 
-  return request('auth/login', options)
+  return request<TLoginResponse>('auth/login', options)
     .then((response) => {
-      return tokenUpload(response);
+      if (!response.success) {
+        return Promise.reject(response);
+      }
+
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
+      return response
     });
 }
 
@@ -206,13 +231,13 @@ export function loginUser(formData) {
  * @permission Auth user only.
  * @returns {Object} logout request status.
  */
-export function logoutUser() {
+export function logoutUser(): Promise<TLogoutResponse> {
   const options = {
     ...defaultOptions,
     body: JSON.stringify({token: localStorage.getItem('refreshToken')})
   };
 
-  return request('auth/logout', options)
+  return request<TLogoutResponse>('auth/logout', options)
   .then((response) => {
     if (!response.success) {
       return Promise.reject(response);
@@ -226,7 +251,7 @@ export function logoutUser() {
 
 /**
  * Send password reset conformation request.
- * @param {Object} email Submitted user email.
+ * @param {Object} formData submitted user email.
  * @example
  * // request body
  * {
@@ -241,13 +266,13 @@ export function logoutUser() {
  * @permission Auth user only.
  * @returns {Object} Email conformation sent status.
  */
-export async function sendPasswordResetConformationEmail(email) {
+export async function sendPasswordResetConformationEmail(formData: TPasswordConformationData): Promise<TPasswordConfirmationResponse> {
   const options = {
     ...defaultOptions,
-    body: JSON.stringify(email)
+    body: JSON.stringify(formData)
   }
 
-  return await request('password-reset', options);
+  return await request<TPasswordConfirmationResponse>('password-reset', options);
 }
 
 /**
@@ -268,13 +293,13 @@ export async function sendPasswordResetConformationEmail(email) {
  * @permission Auth user only.
  * @returns {Object} Password reset request status.
  */
-export async function resetPassword(formData) {
+export async function resetPassword(formData: TPasswordResetData): Promise<TPasswordResetResponse> {
   const options = {
     ...defaultOptions,
     body: JSON.stringify(formData)
   }
 
-  return await request(`password-reset/reset`, options);
+  return await request<TPasswordResetResponse>(`password-reset/reset`, options);
 }
 
 /**
@@ -303,17 +328,17 @@ export async function resetPassword(formData) {
  * @permisson Auth user only.
  * @returns {Object} Order details object.
  */
-export function getOrderDetails(ingredients) {
+export function getOrderDetails(ingredients: { ingredients: TIngredientID[] }): Promise<TOrderDetails> {
   const options = {
     ...defaultOptions,
     body: JSON.stringify({ingredients}),
     headers: {
-        ...defaultOptions.headers,
-        authorization: localStorage.getItem("accessToken")
+      ...defaultOptions.headers,
+      authorization: localStorage.getItem("accessToken") || ''
     }
   }
 
-  return request('orders', options);
+  return request<TOrderDetails>('orders', options);
 }
 
 /**
@@ -330,20 +355,25 @@ export function getOrderDetails(ingredients) {
  * @permission Auth user only.
  * @returns {Object} Request status and user data.
  */
-export async function getUser() {
+export async function getUser(): Promise<TUserDataResponse | unknown> {
   const options = {
     ...defaultOptions,
     method: 'GET',
     headers: {
       ...defaultOptions.headers,
-      authorization: localStorage.getItem('accessToken')
+      authorization: localStorage.getItem('accessToken') || ''
     }
   }
 
   try {
-    return await requestWithRefresh('auth/user', options)
+    return await requestWithRefresh<TUserDataResponse>('auth/user', options)
       .then((response) => {
-        tokenUpload(response);
+        if (!response.success) {
+          return Promise.reject(response);
+        }
+
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
       });
   } catch(error) {
     localStorage.removeItem('accessToken');
@@ -374,16 +404,16 @@ export async function getUser() {
  * @permission Auth user only.
  * @returns {Object} Request status and user data.
  */
-export function updateUser(formData) {
+export function updateUser(formData: TUserUpdateData): Promise<TUserDataResponse> {
   const options = {
     ...defaultOptions,
     method: 'PATCH',
     headers: {
       ...defaultOptions.headers,
-      authorization: localStorage.getItem('accessToken')
+      authorization: localStorage.getItem('accessToken') || '',
     },
     body: JSON.stringify(formData)
   }
 
-  return requestWithRefresh('auth/user', options);
+  return requestWithRefresh<TUserDataResponse>('auth/user', options);
 }

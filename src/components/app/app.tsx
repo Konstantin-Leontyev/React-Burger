@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import './app.modules.css';
+import './app.module.css';
 
 import { ForgotPassword, Home, Login, Logout, NotFound, Profile, Register, ResetPassword } from '../../pages';
 import { IngredientDetails } from "../burger-ingredients";
@@ -18,7 +16,11 @@ export default function App() {
   const state = location.state;
 
   useEffect(() => {
+    // TODO delete ts-ignore
+    // @ts-ignore
     dispatch(checkUserAuth());
+    // TODO delete ts-ignore
+    // @ts-ignore
     dispatch(getIngredients());
     // eslint-disable-next-line
   }, []);

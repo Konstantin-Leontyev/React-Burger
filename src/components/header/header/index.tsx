@@ -6,7 +6,7 @@ import { Logo } from '@ya.praktikum/react-developer-burger-ui-components';
 import { HeaderItem } from '../header-item';
 import { headerItemsInitialState as items } from '../../utils/constants';
 
-export function Header() {
+export function Header(): React.JSX.Element {
   const navItems = items.filter(item => item.type === 'navItems');
   const authItems = items.filter(item => item.type === 'authItems');
 

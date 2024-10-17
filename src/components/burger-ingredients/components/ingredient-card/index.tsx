@@ -4,16 +4,12 @@ import { useDrag } from 'react-dnd';
 import styles from './ingredients-card.module.css';
 
 import { Counter, CurrencyIcon } from '@ya.praktikum/react-developer-burger-ui-components';
-import { ingredientPropTypes } from '../../../utils/constants';
+import { TIngredient } from "../../../utils/types";
 
-IngredientCard.propTypes = {
-  ingredient: ingredientPropTypes.isRequired,
-};
-
-export function IngredientCard({ ingredient }) {
+export function IngredientCard({ ingredient }: { ingredient: TIngredient }) {
   const location = useLocation();
 
-  const [, dragRef] = useDrag({
+  const [, dragRef] = useDrag<TIngredient, unknown, unknown>({
         type: 'ingredient',
         item: ingredient,
   });

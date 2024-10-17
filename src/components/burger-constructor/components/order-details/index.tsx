@@ -4,7 +4,9 @@ import styles from './order-details.module.css';
 import { orderDetails } from '../../../services/burger-constructor/reducers';
 import { useSelector } from 'react-redux';
 
-export function OrderDetails() {
+export function OrderDetails(): React.JSX.Element {
+  // TODO delete ts-ignore
+  // @ts-ignore
   const { order } = useSelector(orderDetails);
 
   return (

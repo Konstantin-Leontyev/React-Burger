@@ -6,15 +6,17 @@ import { useSelector} from 'react-redux';
 import { BurgerConstructor } from '../../components/burger-constructor';
 import { BurgerIngredients } from '../../components/burger-ingredients';
 import { ModalPreloader } from '../../components/modal';
+import { TIngredient } from "../../components/utils/types";
 import {
   hasIngredientsListRequestError, ingredientsList,
   isIngredientsListLoading
 } from '../../components/services/burger-ingredients/reducers';
 
-export function Home() {
+export function Home(): React.JSX.Element {
   const isLoading = useSelector(isIngredientsListLoading);
   const hasError = useSelector(hasIngredientsListRequestError);
-  const ingredients = useSelector(ingredientsList);
+  // TODO type useSelector
+  const ingredients: TIngredient[] = useSelector(ingredientsList);
 
   return (
     <>

@@ -5,23 +5,31 @@ import styles from './burger-ingredients.module.css';
 import { IngredientCard } from '../components/ingredient-card';
 import { IngredientsTab } from '../components/ingredients-tab';
 import { ingredientsList, setTab } from '../../services/burger-ingredients/reducers';
+import { TIngredient } from "../../utils/types";
 
-export function BurgerIngredients() {
+export type TCategories = {
+  title: string;
+  type: string;
+  ref: React.MutableRefObject<HTMLDivElement>
+}[];
+
+export function BurgerIngredients(): React.JSX.Element {
   const dispatch = useDispatch();
-  const ingredients = useSelector(ingredientsList);
+  // TODO type useSelector
+  const ingredients: TIngredient[] = useSelector(ingredientsList);
 
-  const bunRef = useRef({});
-  const innerRef = useRef({});
-  const sauceRef = useRef({});
+  const bunRef = useRef({} as HTMLDivElement);
+  const innerRef = useRef({} as HTMLDivElement);
+  const sauceRef = useRef({} as HTMLDivElement);
 
-  const categories = [
+  const categories: TCategories = [
     { title: "Булки", type: "bun", ref: bunRef},
     { title: "Соусы", type: "sauce", ref: sauceRef},
     { title: "Начинки", type: "main", ref: innerRef},
   ];
 
-  function handleOnScroll(event) {
-    let cursor = event.target.getBoundingClientRect().top;
+  function handleOnScroll(event: React.UIEvent): void {
+    let cursor = event.currentTarget.getBoundingClientRect().top;
     let bunTop = Math.abs(cursor - bunRef.current.getBoundingClientRect().top);
     let sauceTop = Math.abs(cursor - sauceRef.current.getBoundingClientRect().top);
     let innerTop = Math.abs(cursor - innerRef.current.getBoundingClientRect().top);
